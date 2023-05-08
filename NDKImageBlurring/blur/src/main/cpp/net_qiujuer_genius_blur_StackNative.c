@@ -21,6 +21,7 @@
 #include <android/log.h>
 #include <android/bitmap.h>
 #include "stackblur.h"
+#include "net_qiujuer_genius_blur_StackNative.h"
 
 #define TAG "net_qiujuer_genius_blur_StackNative"
 #define LOG_D(...) __android_log_print(ANDROID_LOG_DEBUG,TAG ,__VA_ARGS__)
