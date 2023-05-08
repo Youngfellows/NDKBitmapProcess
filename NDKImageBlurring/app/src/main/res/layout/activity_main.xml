@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="net.qiujuer.sample.blur.MainActivity">
+
+    <LinearLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/picture"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_opt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="模糊图片">
+
+        </Button>
+
+        <fragment
+            android:id="@+id/frag_jni_pixel"
+            android:name="net.qiujuer.sample.blur.frags.JniPixelFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1" />
+
+        <fragment
+            android:id="@+id/frag_jni_bitmap"
+            android:name="net.qiujuer.sample.blur.frags.JniBitmapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1" />
+
+        <fragment
+            android:id="@+id/frag_java"
+            android:name="net.qiujuer.sample.blur.frags.JavaFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1" />
+
+        <fragment
+            android:id="@+id/frag_anim"
+            android:name="net.qiujuer.sample.blur.frags.AnimFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1" />
+
+        <fragment
+            android:id="@+id/frag_rs"
+            android:name="net.qiujuer.sample.blur.frags.RSFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</RelativeLayout>
