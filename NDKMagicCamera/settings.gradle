@@ -1,0 +1,3 @@
+rootProject.name='NDKMagicCamera'
+include ':app'
+include ':magicfilter'
