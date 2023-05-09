@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-#include <bitmap.h>
-//#include <mem_utils.h>
+#include "bitmap.h"
 #include "mem_utils.h"
-#include <colour_space.h>
+#include "colour_space.h"
 #include <math.h>
 #include <android/log.h>
 #include <stdlib.h>
-#include "filter.h"
-#include "blur.h"
 
 #define  LOG_TAG    "filter.c"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)

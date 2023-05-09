@@ -16,6 +16,7 @@
 
 #ifndef MEM_UTILS
 #define MEM_UTILS
+#endif
 
 static const int MEMORY_OK = 0;
 static const int INT_ARRAY_ERROR = 1;
@@ -34,6 +35,3 @@ void freeUnsignedIntArray(unsigned int** arrayPointer);
 void freeDoubleArray(double** arrayPointer);
 void freeUnsignedCharArray(unsigned char** arrayPointer);
 void freeFloatArray(float** arrayPointer);
-
-#endif
-

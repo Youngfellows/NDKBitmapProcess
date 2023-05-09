@@ -16,15 +16,11 @@
 
 #include <jni.h>
 #include <stdlib.h>
-//#include <bitmap.h>
-//#include <mem_utils.h>
+#include "bitmap.h"
+#include "mem_utils.h"
 #include <android/log.h>
 #include <android/bitmap.h>
 #include "beauty.h"
-#include "bitmap.h"
-#include "transform.h"
-#include "mem_utils.h"
-#include "filter.h"
 
 #define  LOG_TAG    "IMAGE_EDIT_PROCESSING"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -35,14 +31,13 @@
 void *do_mosaic(void *pix, void *out_pix, unsigned int width, unsigned int height, unsigned int stride,
           unsigned int out_stride, unsigned int radius);
 
-int initBitmapMemory(Bitmap *ptr, jint width, jint height);
-
 static Bitmap bitmap;
 int Java_com_xinlan_imageeditlibrary_editimage_fliter_PhotoProcessing_nativeInitBitmap(JNIEnv* env, jobject thiz, jint width, jint height) {
 	return initBitmapMemory(&bitmap, width, height);
 }
 
 //
+
 void Java_com_xinlan_imageeditlibrary_editimage_fliter_PhotoProcessing_nativeGetBitmapRow(JNIEnv* env, jobject thiz, jint y, jintArray pixels) {
 	int cpixels[bitmap.width];
 	getBitmapRowAsIntegers(&bitmap, (int)y, &cpixels);
@@ -246,6 +241,8 @@ Java_com_xinlan_imageeditlibrary_editimage_fliter_PhotoProcessing_handleSmooth(J
         return;
     }
 
+    LOGI("info: width = %d , height = %d , stride = %d , format = %d" ,info.width , info.height , info.stride , info.format );
+
     if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
         LOGI("AndroidBitmap_lockPixels() failed ! error=%d", ret);
         return;
@@ -357,7 +354,7 @@ void setWhiteSkin(uint32_t *pix, float whiteVal, int width, int height) {
             for (int j = 0; j < width; j++) {
                 int offset = i * width + j;
                 ARGB RGB;
-                convertIntToArgb(mImageData_rgb[offset], &RGB);
+                convertIntToArgb(mImageData_rgb[offset], &RGB , offset);
                 if (a != 0) {
                     RGB.red = 255 * (log(div255(RGB.red) * (whiteVal - 1) + 1) / a);
                     RGB.green = 255 * (log(div255(RGB.green) * (whiteVal - 1) + 1) / a);
@@ -377,10 +374,13 @@ void setSmooth(uint32_t *pix, float smoothValue, int width, int height) {//ç£¨çš
 
     LOGE("AndroidBitmap_smooth setSmooth start---- smoothValue = %f", smoothValue);
 
-    RGBToYCbCr((uint8_t *) mImageData_rgb, mImageData_yuv, width * height);
+    RGBToYCbCr((uint8_t *) mImageData_rgb, mImageData_yuv, width * height , width / 2 , height / 2);
 
     int radius = width > height ? width * 0.02 : height * 0.02;
 
+    LOGE("AndroidBitmap_smooth width = %d height = %d", width , height);
+
+    long count = 0;
     for (int i = 1; i < height; i++) {
         for (int j = 1; j < width; j++) {
             int offset = i * width + j;
@@ -408,10 +408,13 @@ void setSmooth(uint32_t *pix, float smoothValue, int width, int height) {//ç£¨çš
                 float k = v / (v + smoothValue);
 
                 mImageData_yuv[offset * 3] = ceil(m - k * m + k * mImageData_yuv[offset * 3]);
+                count++;
             }
         }
-    }
-    YCbCrToRGB(mImageData_yuv, (uint8_t *) pix, width * height);
+    }//end for i
+    LOGI("AndroidBitmap_smooth setSmooth END  count = %ld",count);
+
+    YCbCrToRGB(mImageData_yuv, (uint8_t *) pix, width * height , width / 2 , height / 2);
 
     LOGI("AndroidBitmap_smooth setSmooth END!----");
 }
@@ -452,34 +455,10 @@ void initBeautiMatrix(uint32_t *pix, int width, int height) {
     if (mImageData_yuv == NULL)
 		mImageData_yuv = (uint8_t *)malloc(sizeof(uint8_t) * width * height * 4);
 
-    RGBToYCbCr((uint8_t *) mImageData_rgb, mImageData_yuv, width * height);
+    RGBToYCbCr((uint8_t *) mImageData_rgb, mImageData_yuv, width * height , width / 2 , height / 2);
 
     initSkinMatrix(pix, width, height);
     initIntegralMatrix(width, height);
-}
-
-void initSkinMatrix(uint32_t *pix, int w, int h) {
-    LOGE("start - initSkinMatrix");
-    if (mSkinMatrix == NULL)
-		mSkinMatrix = (uint8_t *)malloc(sizeof(uint8_t) *w *h);
-	//mSkinMatrix = new uint8_t[w * h];
-
-    for (int i = 0; i < h; i++) {
-        for (int j = 0; j < w; j++) {
-            int offset = i * w + j;
-            ARGB RGB;
-            convertIntToArgb(pix[offset], &RGB);
-            if ((RGB.blue > 95 && RGB.green > 40 && RGB.red > 20 &&
-                 RGB.blue - RGB.red > 15 && RGB.blue - RGB.green > 15) ||//uniform illumination
-                (RGB.blue > 200 && RGB.green > 210 && RGB.red > 170 &&
-                 abs(RGB.blue - RGB.red) <= 15 && RGB.blue > RGB.red &&
-                 RGB.green > RGB.red))//lateral illumination
-                mSkinMatrix[offset] = 255;
-            else
-                mSkinMatrix[offset] = 0;
-        }
-    }
-    LOGE("end - initSkinMatrix");
 }
 
 void initIntegralMatrix(int width, int height) {
@@ -542,14 +521,40 @@ void initIntegralMatrix(int width, int height) {
     LOGI("initIntegral~end");
 }
 
+void initSkinMatrix(uint32_t *pix, int w, int h) {
+    LOGE("start - initSkinMatrix");
+    if (mSkinMatrix == NULL)
+        mSkinMatrix = (uint8_t *)malloc(sizeof(uint8_t) *w *h);
+    //mSkinMatrix = new uint8_t[w * h];
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            int offset = i * w + j;
+            ARGB RGB;
+            convertIntToArgb(pix[offset], &RGB , offset);
+            if ((RGB.blue > 95 && RGB.green > 40 && RGB.red > 20 &&
+                 RGB.blue - RGB.red > 15 && RGB.blue - RGB.green > 15) ||//uniform illumination
+                (RGB.blue > 200 && RGB.green > 210 && RGB.red > 170 &&
+                 abs(RGB.blue - RGB.red) <= 15 && RGB.blue > RGB.red &&
+                 RGB.green > RGB.red))//lateral illumination
+                mSkinMatrix[offset] = 255;
+            else
+                mSkinMatrix[offset] = 0;
+        }
+    }
+    LOGE("end - initSkinMatrix");
+}
+
 int32_t convertArgbToInt(ARGB argb)
 {
     return (argb.alpha << 24) | (argb.red << 16) | (argb.green << 8) | argb.blue;
 }
 
-void YCbCrToRGB(uint8_t* From, uint8_t* To, int length)
+void YCbCrToRGB(uint8_t* From, uint8_t* To, int length , int x , int y)
 {
-    if (length < 1) return;
+    if (length < 1)
+        return;
+
     int Red, Green, Blue , alpha;
     int Y, Cb, Cr;
     int i,offset;
@@ -559,9 +564,11 @@ void YCbCrToRGB(uint8_t* From, uint8_t* To, int length)
         Y = From[offset];
         Cb = From[offset+1] - 128;
         Cr = From[offset+2] - 128;
+
         Red = Y + ((RGBRCrI * Cr + HalfShiftValue) >> Shift);
         Green = Y + ((RGBGCbI * Cb + RGBGCrI * Cr + HalfShiftValue) >> Shift);
         Blue = Y + ((RGBBCbI * Cb + HalfShiftValue) >> Shift);
+
         alpha = From[offset+3];
 
         if (Red > 255) Red = 255; else if (Red < 0) Red = 0;
@@ -569,13 +576,28 @@ void YCbCrToRGB(uint8_t* From, uint8_t* To, int length)
         if (Blue > 255) Blue = 255; else if (Blue < 0) Blue = 0;
         offset = i << 2;
 
-        To[offset] = (uint8_t)Blue;
-        To[offset+1] = (uint8_t)Green;
-        To[offset+2] = (uint8_t)Red;
+//        To[offset+ 0] = (uint8_t)Red;
+//        To[offset+ 1] = (uint8_t)0;
+//        To[offset+ 2] = (uint8_t)0;
+//        To[offset+ 3] =255;
+
+
+        To[offset+ 0] = (uint8_t)Red;
+        To[offset+ 1] = (uint8_t)Green;
+        To[offset+ 2] = (uint8_t)Blue;
+        //To[offset+ 3] = (uint8_t)alpha;
+
+//        To[offset+ 0] = (uint8_t)0;
+//        To[offset+ 1] = (uint8_t)0;
+//        To[offset+ 2] = (uint8_t)0;
+//        To[offset+ 3] = (uint8_t)255;
+
+
+        //LOGI("process %d  pixels info r g b a = %d  %d  %d  %d" ,i , Red , Green ,Blue , alpha );
     }
 }
 
-void RGBToYCbCr(uint8_t* From, uint8_t* To, int length)
+void RGBToYCbCr(uint8_t* From, uint8_t* To, int length , int x , int y)
 {
     if (length < 1) return;
     int Red, Green, Blue , alpha;
@@ -583,10 +605,12 @@ void RGBToYCbCr(uint8_t* From, uint8_t* To, int length)
     for(i = 0; i < length; i++)
     {
         offset = i << 2;
-        Blue = From[offset];
+        Red = From[offset];
         Green = From[offset+1];
-        Red = From[offset+2];
+        Blue = From[offset+2];
         alpha = From[offset + 3];
+
+//        LOGI("pixels %d info r g b a = %d  %d  %d  %d" ,i , Red , Green ,Blue , alpha );
 
         offset = (i << 1) + i;
         To[offset] = (uint8_t)((YCbCrYRI * Red + YCbCrYGI * Green + YCbCrYBI * Blue + HalfShiftValue) >> Shift);
@@ -596,11 +620,13 @@ void RGBToYCbCr(uint8_t* From, uint8_t* To, int length)
     }
 }
 
-void convertIntToArgb(uint32_t pixel, ARGB* argb) {
+void convertIntToArgb(uint32_t pixel, ARGB* argb,int offset) {
     argb->red = ((pixel >> 16) & 0xff);
     argb->green = ((pixel >> 8) & 0xff);
     argb->blue = (pixel & 0xff);
     argb->alpha = (pixel >> 24);
+
+    //LOGI("pixels info %d  %x  r g b a = %d  %d  %d  %d" ,offset ,pixel , argb->red , argb->green ,argb->blue , argb->alpha );
 }
 
 

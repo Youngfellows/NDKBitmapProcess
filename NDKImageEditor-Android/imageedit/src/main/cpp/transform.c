@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-#include <bitmap.h>
-//#include <mem_utils.h>
+#include "bitmap.h"
 #include "mem_utils.h"
 #include <stdlib.h>
 #include <android/log.h>
-#include "transform.h"
-#include <string.h>
 
 #define  LOG_TAG    "transform.c"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)

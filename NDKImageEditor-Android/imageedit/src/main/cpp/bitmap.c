@@ -22,40 +22,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include <mem_utils.h>
-//#include <bitmap.h>
 #include "mem_utils.h"
 #include "bitmap.h"
-#include "nanojpeg.h"
-#include "transform.h"
-#include "bicubic_resize.h"
 
 #define  LOG_TAG    "bitmap.c"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 
-inline int rgb(int red, int green, int blue) {
+int rgb(int red, int green, int blue) {
 	return (0xFF << 24) | (red << 16) | (green << 8) | blue;
 }
 
-inline int argb(int alpha , int red, int green, int blue) {
+int argb(int alpha , int red, int green, int blue) {
 	return (alpha << 24) | (red << 16) | (green << 8) | blue;
 }
 
-inline unsigned char red(int color) {
+unsigned char red(int color) {
 	return (unsigned char)((color >> 16) & 0xFF);
 }
 
-inline unsigned char green(int color) {
+unsigned char green(int color) {
 	return (unsigned char)((color >> 8) & 0xFF);
 }
 
-inline unsigned char blue(int color) {
+unsigned char blue(int color) {
 	return (unsigned char)(color & 0xFF);
 }
 
-inline unsigned char alpha(int color ){
+unsigned char alpha(int color ){
     return (unsigned char)( (color >> 24) & 0xFF );
 }
 

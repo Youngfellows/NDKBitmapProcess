@@ -15,7 +15,6 @@
  */
 
 #include <stdlib.h>
-//#include <mem_utils.h>
 #include <string.h>
 #include "mem_utils.h"
 

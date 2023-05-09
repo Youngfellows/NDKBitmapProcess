@@ -61,21 +61,21 @@ typedef struct {
     uint8_t alpha, red, green, blue;
 } ARGB;
 
-uint64_t *mIntegralMatrix = NULL;
-uint64_t *mIntegralMatrixSqr = NULL;
-uint8_t *mSkinMatrix = NULL;
-uint32_t *mImageData_rgb = NULL;
-uint8_t *mImageData_yuv = NULL;
+static uint64_t *mIntegralMatrix = NULL;
+static uint64_t *mIntegralMatrixSqr = NULL;
+static uint8_t *mSkinMatrix = NULL;
+static uint32_t *mImageData_rgb = NULL;
+static uint8_t *mImageData_yuv = NULL;
 
 int *blur_ARGB_8888(int *pix, int w, int h, int radius);
 
-void YCbCrToRGB(uint8_t* From, uint8_t* To, int length);
+void YCbCrToRGB(uint8_t* From, uint8_t* To, int length , int x , int y);
 
-void RGBToYCbCr(uint8_t* From, uint8_t* To, int length);
+void RGBToYCbCr(uint8_t* From, uint8_t* To, int length , int x , int y);
 
 int32_t convertArgbToInt(ARGB argb);
 
-void convertIntToArgb(uint32_t pixel, ARGB* argb);
+void convertIntToArgb(uint32_t pixel, ARGB* argb , int offset);
 
 void initBeautiMatrix(uint32_t *pix, int width, int height);
 

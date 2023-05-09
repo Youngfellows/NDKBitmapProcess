@@ -17,6 +17,7 @@ android {
             cmake {
 //                cppFlags "-frtti -fexceptions"
 //                arguments "-DANDROID_TOOLCHAIN=clang"
+                cppFlags "-std=c++11"
                 abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
             }
         }
@@ -36,7 +37,9 @@ android {
 
     externalNativeBuild {
         cmake {
-            path "CMakeLists.txt"
+//            path "CMakeLists.txt"
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
         }
     }
 

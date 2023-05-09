@@ -16,16 +16,7 @@
 
 #ifndef TRANSFORM
 #define TRANSFORM
-
-#include "bitmap.h"
-
-int doTransforms(Bitmap* bitmap, int doRed, int doGreen, int doBlue);
-
-void flipHorizontally(Bitmap* bitmap, int doRed, int doGreen, int doBlue);
-
-int rotate90(Bitmap* bitmap, int doRed, int doGreen, int doBlue);
-
-void rotate180(Bitmap* bitmap, int doRed, int doGreen, int doBlue);
+#endif
 
 static const char FLIP_HORIZONTALLY = 'h';
 static const char FLIP_VERTICALLY = 'v';
@@ -33,6 +24,8 @@ static const char ROTATE_90 = 'r';
 static const char ROTATE_180 = 'u';
 static const char CROP = 'c';
 
-#endif
-
-
+typedef struct {
+	float cropBounds[4]; //left, top, right, bottom
+	unsigned char* transforms;
+	int size;
+} TransformList;
